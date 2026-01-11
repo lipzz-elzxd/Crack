@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pelacak Lokasi GPS</title>
+<style>
+body {
+  background: black;
+  color: white;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+.container {
+  text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+}
+h1 { margin-bottom: 20px; }
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Pelacak Lokasi GPS</h1>
+  <div id="info">Klik tombol untuk mendapatkan lokasi</div>
+  <button onclick="getLocation()">Dapatkan Lokasi</button>
+</div>
+
+<script>
+function getLocation() {
+  const info = document.getElementById('info');
+  
+  if (!navigator.geolocation) {
+    info.innerText = "Geolocation tidak didukung di browser ini.";
+    return;
+  }
+
+  info.innerText = "Meminta izin lokasi...";
+  
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude.toFixed(6);
+      const lon = position.coords.longitude.toFixed(6);
+      info.innerHTML = `
+        <p><strong>Latitude:</strong> ${lat}</p>
+        <p><strong>Longitude:</strong> ${lon}</p>
+        <p><em>Lokasi ini diperoleh dengan izin pengguna</em></p>
+      `;
+    },
+    (error) => {
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          info.innerText = "Pengguna menolak izin lokasi.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          info.innerText = "Lokasi tidak tersedia.";
+          break;
+        case error.TIMEOUT:
+          info.innerText = "Permintaan lokasi timeout.";
+          break;
+        default:
+          info.innerText = "Terjadi kesalahan saat mengambil lokasi.";
+      }
+    }
+  );
+}
+</script>
+
+</body>
+</html>
