@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pelacak Lokasi GPS</title>
+<title>Pelacak Lokasi</title>
 <style>
 body {
+  margin: 0;
   background: black;
   color: white;
   font-family: Arial, sans-serif;
@@ -23,58 +24,68 @@ body {
 }
 h1 { margin-bottom: 20px; }
 button {
-  margin-top: 15px;
-  padding: 10px 20px;
-  border-radius: 8px;
+  margin-top: 12px;
+  padding: 10px 30px;
+  border-radius: 10px;
   border: none;
-  cursor: pointer;
+  background: white;
+  color: black;
   font-weight: bold;
+  cursor: pointer;
+}
+#status {
+  margin-top: 15px;
+  opacity: 0.8;
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Pelacak Lokasi GPS</h1>
-  <div id="info">Klik tombol untuk mendapatkan lokasi</div>
-  <button onclick="getLocation()">Dapatkan Lokasi</button>
+  <h1>Pelacak Lokasi</h1>
+  <button onclick="saveLocation()">Simpan Lokasi Sekarang</button>
+  <div id="status">Klik tombol untuk menyimpan lokasi.</div>
 </div>
 
 <script>
-function getLocation() {
-  const info = document.getElementById('info');
-  
+const formURL = "https://docs.google.com/forms/d/e/1FAIpQLScJJ-PAqYmeOnS6qKdgL1gTGMyX_FjrMLLg93Pv4QDbw1N-Cg/formResponse";
+
+// Entry ID sesuai Form kamu
+const entryLatitude = "entry.138340134";
+const entryLongitude = "entry.1616098311";
+const entryUserAgent = "entry.1257224602";
+
+function saveLocation() {
+  const status = document.getElementById("status");
   if (!navigator.geolocation) {
-    info.innerText = "Geolocation tidak didukung di browser ini.";
+    status.innerText = "Browser kamu tidak mendukung Geolocation.";
     return;
   }
 
-  info.innerText = "Meminta izin lokasi...";
-  
+  status.innerText = "Mengambil lokasi…";
+
   navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const lat = position.coords.latitude.toFixed(6);
-      const lon = position.coords.longitude.toFixed(6);
-      info.innerHTML = `
-        <p><strong>Latitude:</strong> ${lat}</p>
-        <p><strong>Longitude:</strong> ${lon}</p>
-        <p><em>Lokasi ini diperoleh dengan izin pengguna</em></p>
-      `;
+    pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const ua = navigator.userAgent;
+
+      const data = new URLSearchParams();
+      data.append(entryLatitude, lat);
+      data.append(entryLongitude, lon);
+      data.append(entryUserAgent, ua);
+
+      fetch(formURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: data
+      });
+
+      status.innerText = "Lokasi berhasil dikirim!";
     },
-    (error) => {
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          info.innerText = "Pengguna menolak izin lokasi.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          info.innerText = "Lokasi tidak tersedia.";
-          break;
-        case error.TIMEOUT:
-          info.innerText = "Permintaan lokasi timeout.";
-          break;
-        default:
-          info.innerText = "Terjadi kesalahan saat mengambil lokasi.";
-      }
+    err => {
+      console.error(err);
+      status.innerText = "Gagal mengambil lokasi.";
     }
   );
 }
